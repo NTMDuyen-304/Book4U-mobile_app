@@ -1,0 +1,21 @@
+package com.example.book4u.activities;
+
+import android.os.Bundle;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.book4u.R;
+
+public class AddEditBookActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_add_edit_book);
+
+        // TODO:
+        // if has bookId -> edit mode
+        // else -> add mode
+    }
+}
