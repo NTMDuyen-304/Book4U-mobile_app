@@ -11,20 +11,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.book4u.R;
-import com.example.book4u.models.AuthResponse;
-import com.example.book4u.repository.AuthRepository;
 import com.example.book4u.storage.SessionManager;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
     private EditText edtEmail, edtPassword;
     private Button btnLogin;
-
-    private AuthRepository authRepository;
     private SessionManager sessionManager;
 
     @Override
@@ -36,7 +28,6 @@ public class LoginActivity extends AppCompatActivity {
         edtPassword = findViewById(R.id.edtPassword);
         btnLogin = findViewById(R.id.btnLogin);
 
-        authRepository = new AuthRepository();
         sessionManager = new SessionManager(this);
 
         btnLogin.setOnClickListener(v -> doLogin());
@@ -51,37 +42,24 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        authRepository.login(email, password).enqueue(new Callback<AuthResponse>() {
-            @Override
-            public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
-                if (!response.isSuccessful() || response.body() == null || response.body().getUser() == null) {
-                    Toast.makeText(LoginActivity.this, "Đăng nhập thất bại", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+        String role = email.toLowerCase().contains("admin") ? "admin" : "student";
 
-                AuthResponse auth = response.body();
+        sessionManager.saveSession(
+                "mock_token_123",
+                "u001",
+                role.equals("admin") ? "Admin User" : "Student User",
+                email,
+                role
+        );
 
-                sessionManager.saveSession(
-                        auth.getToken(),
-                        auth.getUser().getId(),
-                        auth.getUser().getName(),
-                        auth.getUser().getEmail(),
-                        auth.getUser().getRole()
-                );
+        Toast.makeText(this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
 
-                if ("admin".equalsIgnoreCase(auth.getUser().getRole())) {
-                    startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
-                } else {
-                    startActivity(new Intent(LoginActivity.this, StudentMainActivity.class));
-                }
+        if ("admin".equalsIgnoreCase(role)) {
+            startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
+        } else {
+            startActivity(new Intent(LoginActivity.this, StudentMainActivity.class));
+        }
 
-                finish();
-            }
-
-            @Override
-            public void onFailure(Call<AuthResponse> call, Throwable t) {
-                Toast.makeText(LoginActivity.this, "Lỗi mạng: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+        finish();
     }
 }

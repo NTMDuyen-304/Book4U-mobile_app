@@ -4,12 +4,14 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.book4u.R;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class AdminDashboardFragment extends Fragment {
 
@@ -20,6 +22,25 @@ public class AdminDashboardFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_admin_dashboard, container, false);
+        View view = inflater.inflate(R.layout.fragment_admin_dashboard, container, false);
+
+        Button btnManageBooks = view.findViewById(R.id.btnManageBooks);
+        Button btnManageBorrow = view.findViewById(R.id.btnManageBorrow);
+
+        btnManageBooks.setOnClickListener(v -> {
+            BottomNavigationView bottomNav = requireActivity().findViewById(R.id.bottomNavAdmin);
+            if (bottomNav != null) {
+                bottomNav.setSelectedItemId(R.id.nav_admin_books);
+            }
+        });
+
+        btnManageBorrow.setOnClickListener(v -> {
+            BottomNavigationView bottomNav = requireActivity().findViewById(R.id.bottomNavAdmin);
+            if (bottomNav != null) {
+                bottomNav.setSelectedItemId(R.id.nav_admin_borrow);
+            }
+        });
+
+        return view;
     }
 }
