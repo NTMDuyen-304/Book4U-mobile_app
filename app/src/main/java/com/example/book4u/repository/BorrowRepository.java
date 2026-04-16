@@ -118,16 +118,17 @@ public class BorrowRepository {
 
         List<BorrowRequest> list = readAll(context);
 
-        int activeApproved = 0;
+        int activeCount = 0;
         for (BorrowRequest item : list) {
             if (sessionManager.getUserId().equals(item.getUserId())
-                    && "Approved".equalsIgnoreCase(item.getStatus())) {
-                activeApproved++;
+                    && ("Approved".equalsIgnoreCase(item.getStatus())
+                    || "Pending".equalsIgnoreCase(item.getStatus()))) {
+                activeCount++;
             }
         }
 
-        if (activeApproved >= 3) {
-            callback.onError("Bạn không thể mượn thêm vì đang mượn 3 cuốn");
+        if (activeCount >= 3) {
+            callback.onError("Bạn không thể mượn thêm vì đã có 3 yêu cầu mượn/đang mượn");
             return;
         }
 
@@ -150,8 +151,10 @@ public class BorrowRepository {
                 context,
                 "admin_local",
                 "Borrow request",
-                sessionManager.getName() + " requested \"" + book.getTitle() + "\"",
-                today()
+                sessionManager.getUserId() + " requested \"" + book.getTitle() + "\"",
+                today(),
+                "borrow_request",
+                request.getId()
         );
 
         callback.onSuccess("Borrow request sent");
@@ -196,7 +199,7 @@ public class BorrowRepository {
         }
 
         if (activeApproved >= 3) {
-            callback.onError(target.getUserName() + " is already borrowing 3 books");
+            callback.onError(target.getUserId() + " is already borrowing 3 books");
             return;
         }
 
@@ -210,15 +213,19 @@ public class BorrowRepository {
                 context,
                 "admin_local",
                 "Borrow approved",
-                "Approved \"" + target.getBookTitle() + "\" for " + target.getUserName(),
-                today()
+                "Approved \"" + target.getBookTitle() + "\" for " + target.getUserId(),
+                today(),
+                "borrow_request",
+                target.getId()
         );
         notificationRepository.addNotification(
                 context,
                 target.getUserId(),
                 "Borrow approved",
                 "Your request for \"" + target.getBookTitle() + "\" was approved",
-                today()
+                today(),
+                "borrow_request",
+                target.getId()
         );
 
         callback.onSuccess("Approved successfully");
@@ -248,15 +255,19 @@ public class BorrowRepository {
                 context,
                 "admin_local",
                 "Borrow rejected",
-                "Rejected \"" + target.getBookTitle() + "\" for " + target.getUserName(),
-                today()
+                "Rejected \"" + target.getBookTitle() + "\" for " + target.getUserId(),
+                today(),
+                "borrow_request",
+                target.getId()
         );
         notificationRepository.addNotification(
                 context,
                 target.getUserId(),
                 "Borrow rejected",
                 "Your request for \"" + target.getBookTitle() + "\" was rejected",
-                today()
+                today(),
+                "borrow_request",
+                target.getId()
         );
 
         callback.onSuccess("Rejected successfully");

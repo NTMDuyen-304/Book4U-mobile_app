@@ -11,12 +11,14 @@ import com.example.book4u.R;
 import com.example.book4u.fragments.admin.AdminBooksFragment;
 import com.example.book4u.fragments.admin.AdminBorrowManageFragment;
 import com.example.book4u.fragments.admin.AdminDashboardFragment;
+import com.example.book4u.fragments.shared.NotificationsFragment;
 import com.example.book4u.fragments.shared.ProfileFragment;
 import com.example.book4u.repository.NotificationRepository;
 import com.example.book4u.storage.SessionManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-public class AdminMainActivity extends AppCompatActivity {
+public class AdminMainActivity extends AppCompatActivity
+        implements NotificationsFragment.NotificationNavigationListener {
 
     private BottomNavigationView bottomNavigationView;
     private View viewNotificationDot;
@@ -35,6 +37,7 @@ public class AdminMainActivity extends AppCompatActivity {
         sessionManager = new SessionManager(this);
 
         loadFragment(new AdminDashboardFragment());
+        updateNotificationDot();
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
@@ -46,12 +49,15 @@ public class AdminMainActivity extends AppCompatActivity {
                 selectedFragment = new AdminBooksFragment();
             } else if (id == R.id.nav_admin_borrow) {
                 selectedFragment = new AdminBorrowManageFragment();
+            } else if (id == R.id.nav_admin_notifications) {
+                selectedFragment = new NotificationsFragment();
             } else if (id == R.id.nav_admin_profile) {
                 selectedFragment = new ProfileFragment();
             }
 
             if (selectedFragment != null) {
                 loadFragment(selectedFragment);
+                updateNotificationDot();
                 return true;
             }
             return false;
@@ -61,11 +67,24 @@ public class AdminMainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        updateNotificationDot();
+    }
 
+    private void updateNotificationDot() {
         int unread = notificationRepository.getUnreadCount(this, sessionManager.getUserId());
         if (viewNotificationDot != null) {
             viewNotificationDot.setVisibility(unread > 0 ? View.VISIBLE : View.GONE);
         }
+    }
+
+    @Override
+    public void openBorrowTarget(String targetType, String targetId) {
+        bottomNavigationView.setSelectedItemId(R.id.nav_admin_borrow);
+    }
+
+    @Override
+    public void refreshNotificationDot() {
+        updateNotificationDot();
     }
 
     private void loadFragment(Fragment fragment) {

@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -37,7 +38,8 @@ public class BorrowRequestAdapter extends RecyclerView.Adapter<BorrowRequestAdap
     @NonNull
     @Override
     public BorrowRequestViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_borrow_request, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_borrow_request, parent, false);
         return new BorrowRequestViewHolder(view);
     }
 
@@ -46,36 +48,45 @@ public class BorrowRequestAdapter extends RecyclerView.Adapter<BorrowRequestAdap
         BorrowRequest request = requestList.get(position);
 
         holder.tvRequestBookTitle.setText(request.getBookTitle());
-        holder.tvRequestUserName.setText("Requested by: " + request.getUserName());
+        holder.tvRequestUserName.setText("MSSV: " + request.getUserId());
         holder.tvRequestDate.setText("Date: " + request.getRequestDate());
-        setStatusStyle(holder.tvRequestStatus, request.getStatus());
+        holder.tvRequestStatus.setText(request.getStatus());
+
+        if ("Approved".equalsIgnoreCase(request.getStatus())) {
+            holder.tvRequestStatus.setTextColor(Color.parseColor("#16A34A"));
+        } else if ("Rejected".equalsIgnoreCase(request.getStatus())) {
+            holder.tvRequestStatus.setTextColor(Color.parseColor("#DC2626"));
+        } else {
+            holder.tvRequestStatus.setTextColor(Color.parseColor("#D97706"));
+        }
 
         boolean isPending = "Pending".equalsIgnoreCase(request.getStatus());
 
         holder.tvApproveRequest.setEnabled(isPending);
         holder.tvRejectRequest.setEnabled(isPending);
+
         holder.tvApproveRequest.setAlpha(isPending ? 1f : 0.4f);
         holder.tvRejectRequest.setAlpha(isPending ? 1f : 0.4f);
 
         holder.tvApproveRequest.setOnClickListener(v -> {
-            if (isPending && listener != null) listener.onApprove(request);
+            if (!isPending) {
+                Toast.makeText(v.getContext(), "Request already processed", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (listener != null) {
+                listener.onApprove(request);
+            }
         });
 
         holder.tvRejectRequest.setOnClickListener(v -> {
-            if (isPending && listener != null) listener.onReject(request);
+            if (!isPending) {
+                Toast.makeText(v.getContext(), "Request already processed", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (listener != null) {
+                listener.onReject(request);
+            }
         });
-    }
-
-    private void setStatusStyle(TextView tvStatus, String status) {
-        tvStatus.setText(status);
-
-        if ("Approved".equalsIgnoreCase(status)) {
-            tvStatus.setTextColor(Color.parseColor("#16A34A"));
-        } else if ("Rejected".equalsIgnoreCase(status)) {
-            tvStatus.setTextColor(Color.parseColor("#DC2626"));
-        } else {
-            tvStatus.setTextColor(Color.parseColor("#D97706"));
-        }
     }
 
     @Override

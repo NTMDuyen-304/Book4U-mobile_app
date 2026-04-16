@@ -38,7 +38,7 @@ public class HomeFragment extends Fragment {
         btnMyHistory.setOnClickListener(v -> {
             BottomNavigationView bottomNav = requireActivity().findViewById(R.id.bottomNavStudent);
             if (bottomNav != null) {
-                bottomNav.setSelectedItemId(R.id.nav_history);
+                bottomNav.setSelectedItemId(R.id.nav_notifications);
             }
         });
 

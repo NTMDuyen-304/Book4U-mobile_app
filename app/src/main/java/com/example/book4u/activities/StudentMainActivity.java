@@ -8,16 +8,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.example.book4u.R;
+import com.example.book4u.fragments.shared.NotificationsFragment;
 import com.example.book4u.fragments.shared.ProfileFragment;
 import com.example.book4u.fragments.student.BooksFragment;
-import com.example.book4u.fragments.student.HistoryFragment;
 import com.example.book4u.fragments.student.HomeFragment;
 import com.example.book4u.fragments.student.MyBorrowFragment;
 import com.example.book4u.repository.NotificationRepository;
 import com.example.book4u.storage.SessionManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-public class StudentMainActivity extends AppCompatActivity {
+public class StudentMainActivity extends AppCompatActivity
+        implements NotificationsFragment.NotificationNavigationListener {
 
     private BottomNavigationView bottomNavigationView;
     private View viewNotificationDot;
@@ -36,6 +37,7 @@ public class StudentMainActivity extends AppCompatActivity {
         sessionManager = new SessionManager(this);
 
         loadFragment(new HomeFragment());
+        updateNotificationDot();
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
@@ -47,14 +49,15 @@ public class StudentMainActivity extends AppCompatActivity {
                 selectedFragment = new BooksFragment();
             } else if (id == R.id.nav_borrow) {
                 selectedFragment = new MyBorrowFragment();
-            } else if (id == R.id.nav_history) {
-                selectedFragment = new HistoryFragment();
+            } else if (id == R.id.nav_notifications) {
+                selectedFragment = new NotificationsFragment();
             } else if (id == R.id.nav_profile) {
                 selectedFragment = new ProfileFragment();
             }
 
             if (selectedFragment != null) {
                 loadFragment(selectedFragment);
+                updateNotificationDot();
                 return true;
             }
             return false;
@@ -64,11 +67,24 @@ public class StudentMainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        updateNotificationDot();
+    }
 
+    private void updateNotificationDot() {
         int unread = notificationRepository.getUnreadCount(this, sessionManager.getUserId());
         if (viewNotificationDot != null) {
             viewNotificationDot.setVisibility(unread > 0 ? View.VISIBLE : View.GONE);
         }
+    }
+
+    @Override
+    public void openBorrowTarget(String targetType, String targetId) {
+        bottomNavigationView.setSelectedItemId(R.id.nav_borrow);
+    }
+
+    @Override
+    public void refreshNotificationDot() {
+        updateNotificationDot();
     }
 
     private void loadFragment(Fragment fragment) {

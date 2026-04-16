@@ -35,6 +35,11 @@ public class NotificationRepository {
     }
 
     public void addNotification(Context context, String userId, String title, String message, String createdAt) {
+        addNotification(context, userId, title, message, createdAt, "", "");
+    }
+
+    public void addNotification(Context context, String userId, String title, String message,
+                                String createdAt, String targetType, String targetId) {
         List<NotificationItem> list = readAll(context);
         list.add(0, new NotificationItem(
                 UUID.randomUUID().toString(),
@@ -42,7 +47,9 @@ public class NotificationRepository {
                 title,
                 message,
                 createdAt,
-                false
+                false,
+                targetType,
+                targetId
         ));
         saveAll(context, list);
     }
@@ -67,15 +74,24 @@ public class NotificationRepository {
         return count;
     }
 
+    public void markAsRead(Context context, String notificationId) {
+        List<NotificationItem> list = readAll(context);
+        for (NotificationItem item : list) {
+            if (notificationId.equals(item.getId())) {
+                item.setRead(true);
+                break;
+            }
+        }
+        saveAll(context, list);
+    }
+
     public void markAllAsRead(Context context, String userId) {
         List<NotificationItem> list = readAll(context);
-
         for (NotificationItem item : list) {
             if (userId.equals(item.getUserId())) {
                 item.setRead(true);
             }
         }
-
         saveAll(context, list);
     }
 }
