@@ -43,10 +43,13 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         String role = email.toLowerCase().contains("admin") ? "admin" : "student";
+        String userId = role.equals("admin")
+                ? "admin_local"
+                : email.toLowerCase().replaceAll("[^a-z0-9]", "_");
 
         sessionManager.saveSession(
                 "mock_token_123",
-                "u001",
+                userId,
                 role.equals("admin") ? "Admin User" : "Student User",
                 email,
                 role

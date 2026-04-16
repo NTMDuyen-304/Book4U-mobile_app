@@ -26,6 +26,16 @@
         android:textColor="@color/text_muted"
         android:textSize="14sp" />
 
+    <TextView
+        android:id="@+id/tvBookStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="Available"
+        android:textColor="@color/purple_primary"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
     <Button
         android:id="@+id/btnBorrow"
         android:layout_width="wrap_content"

@@ -1,5 +1,6 @@
 package com.example.book4u.adapters;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,17 +30,27 @@ public class BorrowAdapter extends RecyclerView.Adapter<BorrowAdapter.BorrowView
     @NonNull
     @Override
     public BorrowViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_borrow, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_borrow, parent, false);
         return new BorrowViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull BorrowViewHolder holder, int position) {
         BorrowItem item = borrowList.get(position);
+
         holder.tvBorrowBookTitle.setText(item.getTitle());
-        holder.tvBorrowDate.setText("Borrowed: " + item.getBorrowDate());
-        holder.tvDueDate.setText("Due: " + item.getDueDate());
+        holder.tvBorrowDate.setText("Borrow date: " + item.getBorrowDate());
+        holder.tvDueDate.setText("Due date: " + item.getDueDate());
         holder.tvBorrowStatus.setText(item.getStatus());
+
+        if ("Approved".equalsIgnoreCase(item.getStatus())) {
+            holder.tvBorrowStatus.setTextColor(Color.parseColor("#16A34A"));
+        } else if ("Rejected".equalsIgnoreCase(item.getStatus())) {
+            holder.tvBorrowStatus.setTextColor(Color.parseColor("#DC2626"));
+        } else {
+            holder.tvBorrowStatus.setTextColor(Color.parseColor("#D97706"));
+        }
     }
 
     @Override

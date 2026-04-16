@@ -14,6 +14,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.book4u.R;
 import com.example.book4u.adapters.BorrowAdapter;
 import com.example.book4u.models.BorrowItem;
+import com.example.book4u.models.BorrowRequest;
+import com.example.book4u.repository.BorrowRepository;
+import com.example.book4u.storage.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +26,9 @@ public class MyBorrowFragment extends Fragment {
     private RecyclerView recyclerMyBorrow;
     private BorrowAdapter borrowAdapter;
     private final List<BorrowItem> borrowItemList = new ArrayList<>();
+
+    private BorrowRepository borrowRepository;
+    private SessionManager sessionManager;
 
     public MyBorrowFragment() {
     }
@@ -36,7 +42,8 @@ public class MyBorrowFragment extends Fragment {
         recyclerMyBorrow = view.findViewById(R.id.recyclerMyBorrow);
         recyclerMyBorrow.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        setupMockBorrowItems();
+        borrowRepository = new BorrowRepository();
+        sessionManager = new SessionManager(requireContext());
 
         borrowAdapter = new BorrowAdapter(borrowItemList);
         recyclerMyBorrow.setAdapter(borrowAdapter);
@@ -44,9 +51,38 @@ public class MyBorrowFragment extends Fragment {
         return view;
     }
 
-    private void setupMockBorrowItems() {
-        borrowItemList.add(new BorrowItem("Clean Code", "2026-04-01", "2026-04-15", "Borrowing"));
-        borrowItemList.add(new BorrowItem("Atomic Habits", "2026-04-03", "2026-04-17", "Due Soon"));
-        borrowItemList.add(new BorrowItem("Design Patterns", "2026-04-05", "2026-04-19", "Borrowing"));
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadMyBorrows();
+    }
+
+    private void loadMyBorrows() {
+        borrowRepository.getMyLocalRequests(requireContext(), sessionManager.getUserId(), requests -> {
+            borrowItemList.clear();
+
+            for (BorrowRequest request : requests) {
+                String borrowDate = "-";
+                String dueDate = "-";
+
+                if ("Approved".equalsIgnoreCase(request.getStatus())) {
+                    if (request.getBorrowDate() != null && !request.getBorrowDate().isEmpty()) {
+                        borrowDate = request.getBorrowDate();
+                    }
+                    if (request.getDueDate() != null && !request.getDueDate().isEmpty()) {
+                        dueDate = request.getDueDate();
+                    }
+                }
+
+                borrowItemList.add(new BorrowItem(
+                        request.getBookTitle(),
+                        borrowDate,
+                        dueDate,
+                        request.getStatus()
+                ));
+            }
+
+            borrowAdapter.setBorrowList(borrowItemList);
+        });
     }
 }

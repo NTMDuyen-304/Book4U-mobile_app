@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,10 +16,17 @@ import java.util.List;
 
 public class BorrowRequestAdapter extends RecyclerView.Adapter<BorrowRequestAdapter.BorrowRequestViewHolder> {
 
-    private List<BorrowRequest> requestList;
+    public interface OnBorrowRequestActionListener {
+        void onApprove(BorrowRequest request);
+        void onReject(BorrowRequest request);
+    }
 
-    public BorrowRequestAdapter(List<BorrowRequest> requestList) {
+    private List<BorrowRequest> requestList;
+    private final OnBorrowRequestActionListener listener;
+
+    public BorrowRequestAdapter(List<BorrowRequest> requestList, OnBorrowRequestActionListener listener) {
         this.requestList = requestList;
+        this.listener = listener;
     }
 
     public void setRequestList(List<BorrowRequest> requestList) {
@@ -42,43 +48,22 @@ public class BorrowRequestAdapter extends RecyclerView.Adapter<BorrowRequestAdap
         holder.tvRequestBookTitle.setText(request.getBookTitle());
         holder.tvRequestUserName.setText("Requested by: " + request.getUserName());
         holder.tvRequestDate.setText("Date: " + request.getRequestDate());
-
         setStatusStyle(holder.tvRequestStatus, request.getStatus());
 
         boolean isPending = "Pending".equalsIgnoreCase(request.getStatus());
 
         holder.tvApproveRequest.setEnabled(isPending);
         holder.tvRejectRequest.setEnabled(isPending);
-
         holder.tvApproveRequest.setAlpha(isPending ? 1f : 0.4f);
         holder.tvRejectRequest.setAlpha(isPending ? 1f : 0.4f);
 
-        holder.tvApproveRequest.setOnClickListener(null);
-        holder.tvRejectRequest.setOnClickListener(null);
+        holder.tvApproveRequest.setOnClickListener(v -> {
+            if (isPending && listener != null) listener.onApprove(request);
+        });
 
-        if (isPending) {
-            holder.tvApproveRequest.setOnClickListener(v -> {
-                request.setStatus("Approved");
-                notifyItemChanged(holder.getAdapterPosition());
-
-                v.animate().scaleX(1.08f).scaleY(1.08f).setDuration(100).withEndAction(() ->
-                        v.animate().scaleX(1f).scaleY(1f).setDuration(100)
-                ).start();
-
-                Toast.makeText(v.getContext(), "Approved: " + request.getBookTitle(), Toast.LENGTH_SHORT).show();
-            });
-
-            holder.tvRejectRequest.setOnClickListener(v -> {
-                request.setStatus("Rejected");
-                notifyItemChanged(holder.getAdapterPosition());
-
-                v.animate().scaleX(1.08f).scaleY(1.08f).setDuration(100).withEndAction(() ->
-                        v.animate().scaleX(1f).scaleY(1f).setDuration(100)
-                ).start();
-
-                Toast.makeText(v.getContext(), "Rejected: " + request.getBookTitle(), Toast.LENGTH_SHORT).show();
-            });
-        }
+        holder.tvRejectRequest.setOnClickListener(v -> {
+            if (isPending && listener != null) listener.onReject(request);
+        });
     }
 
     private void setStatusStyle(TextView tvStatus, String status) {

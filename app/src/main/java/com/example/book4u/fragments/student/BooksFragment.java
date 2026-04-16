@@ -1,12 +1,15 @@
 package com.example.book4u.fragments.student;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +20,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.book4u.R;
 import com.example.book4u.adapters.BookAdapter;
 import com.example.book4u.models.Book;
+import com.example.book4u.repository.BookRepository;
+import com.example.book4u.repository.BorrowRepository;
+import com.example.book4u.storage.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +33,10 @@ public class BooksFragment extends Fragment {
     private RecyclerView recyclerBooks;
     private BookAdapter bookAdapter;
 
-    private final List<Book> fullBookList = new ArrayList<>();
-    private final List<Book> filteredBookList = new ArrayList<>();
+    private final List<Book> bookList = new ArrayList<>();
+    private BookRepository bookRepository;
+    private BorrowRepository borrowRepository;
+    private SessionManager sessionManager;
 
     public BooksFragment() {
     }
@@ -43,12 +51,28 @@ public class BooksFragment extends Fragment {
         edtSearchBooks = view.findViewById(R.id.edtSearchBooks);
         recyclerBooks = view.findViewById(R.id.recyclerBooks);
 
+        bookRepository = new BookRepository(requireContext());
+        borrowRepository = new BorrowRepository();
+        sessionManager = new SessionManager(requireContext());
+
         recyclerBooks.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        setupMockBooks();
+        bookAdapter = new BookAdapter(bookList, book -> {
+            borrowRepository.createBorrowLocal(requireContext(), book, sessionManager,
+                    new BorrowRepository.ActionCallback() {
+                        @Override
+                        public void onSuccess(String message) {
+                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                            loadBooks();
+                        }
 
-        filteredBookList.addAll(fullBookList);
-        bookAdapter = new BookAdapter(filteredBookList);
+                        @Override
+                        public void onError(String message) {
+                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        });
+
         recyclerBooks.setAdapter(bookAdapter);
 
         edtSearchBooks.addTextChangedListener(new TextWatcher() {
@@ -58,7 +82,7 @@ public class BooksFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterBooks(s.toString());
+                loadBooks();
             }
 
             @Override
@@ -69,55 +93,27 @@ public class BooksFragment extends Fragment {
         return view;
     }
 
-    private void setupMockBooks() {
-        fullBookList.add(new Book(
-                "Clean Code",
-                "Robert C. Martin",
-                "A practical guide to writing cleaner, more maintainable, and more readable code.",
-                true
-        ));
-
-        fullBookList.add(new Book(
-                "Atomic Habits",
-                "James Clear",
-                "A book about building good habits, breaking bad ones, and improving yourself step by step.",
-                true
-        ));
-
-        fullBookList.add(new Book(
-                "Android Programming Basics",
-                "Google Developers",
-                "An introduction to Android development concepts, UI design, and app building fundamentals.",
-                true
-        ));
-
-        fullBookList.add(new Book(
-                "The Pragmatic Programmer",
-                "Andrew Hunt",
-                "A classic software engineering book that shares practical advice for becoming a better programmer.",
-                true
-        ));
-
-        fullBookList.add(new Book(
-                "Design Patterns",
-                "Erich Gamma",
-                "An influential book introducing reusable object-oriented design patterns for software development.",
-                false
-        ));
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadBooks();
     }
 
-    private void filterBooks(String keyword) {
-        String query = keyword.trim().toLowerCase();
+    private void loadBooks() {
+        String keyword = edtSearchBooks.getText().toString().trim();
 
-        filteredBookList.clear();
-
-        for (Book book : fullBookList) {
-            if (book.getTitle().toLowerCase().contains(query)
-                    || book.getAuthor().toLowerCase().contains(query)) {
-                filteredBookList.add(book);
-            }
+        if (keyword.isEmpty()) {
+            bookRepository.getAllLocalBooks(books ->
+                    new Handler(Looper.getMainLooper()).post(() -> updateList(books)));
+        } else {
+            bookRepository.searchLocalBooks(keyword, books ->
+                    new Handler(Looper.getMainLooper()).post(() -> updateList(books)));
         }
+    }
 
-        bookAdapter.setBookList(filteredBookList);
+    private void updateList(List<Book> books) {
+        bookList.clear();
+        bookList.addAll(books);
+        bookAdapter.setBookList(bookList);
     }
 }

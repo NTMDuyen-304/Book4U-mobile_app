@@ -1,22 +1,28 @@
 package com.example.book4u.activities;
 
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.example.book4u.R;
+import com.example.book4u.fragments.shared.ProfileFragment;
 import com.example.book4u.fragments.student.BooksFragment;
 import com.example.book4u.fragments.student.HistoryFragment;
 import com.example.book4u.fragments.student.HomeFragment;
 import com.example.book4u.fragments.student.MyBorrowFragment;
-import com.example.book4u.fragments.shared.ProfileFragment;
+import com.example.book4u.repository.NotificationRepository;
+import com.example.book4u.storage.SessionManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class StudentMainActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNavigationView;
+    private View viewNotificationDot;
+    private NotificationRepository notificationRepository;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -24,6 +30,10 @@ public class StudentMainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_student_main);
 
         bottomNavigationView = findViewById(R.id.bottomNavStudent);
+        viewNotificationDot = findViewById(R.id.viewNotificationDot);
+
+        notificationRepository = new NotificationRepository();
+        sessionManager = new SessionManager(this);
 
         loadFragment(new HomeFragment());
 
@@ -49,6 +59,16 @@ public class StudentMainActivity extends AppCompatActivity {
             }
             return false;
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        int unread = notificationRepository.getUnreadCount(this, sessionManager.getUserId());
+        if (viewNotificationDot != null) {
+            viewNotificationDot.setVisibility(unread > 0 ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void loadFragment(Fragment fragment) {
