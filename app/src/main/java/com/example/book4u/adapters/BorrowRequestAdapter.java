@@ -20,6 +20,7 @@ public class BorrowRequestAdapter extends RecyclerView.Adapter<BorrowRequestAdap
     public interface OnBorrowRequestActionListener {
         void onApprove(BorrowRequest request);
         void onReject(BorrowRequest request);
+        void onReturn(BorrowRequest request);
     }
 
     private List<BorrowRequest> requestList;
@@ -48,45 +49,91 @@ public class BorrowRequestAdapter extends RecyclerView.Adapter<BorrowRequestAdap
         BorrowRequest request = requestList.get(position);
 
         holder.tvRequestBookTitle.setText(request.getBookTitle());
-        holder.tvRequestUserName.setText("MSSV: " + request.getUserId());
-        holder.tvRequestDate.setText("Date: " + request.getRequestDate());
-        holder.tvRequestStatus.setText(request.getStatus());
 
-        if ("Approved".equalsIgnoreCase(request.getStatus())) {
-            holder.tvRequestStatus.setTextColor(Color.parseColor("#16A34A"));
-        } else if ("Rejected".equalsIgnoreCase(request.getStatus())) {
-            holder.tvRequestStatus.setTextColor(Color.parseColor("#DC2626"));
+        String userLine = "User: " + request.getUserName();
+        if (!request.getUserEmail().isEmpty()) {
+            userLine += " (" + request.getUserEmail() + ")";
+        }
+        holder.tvRequestUserName.setText(userLine);
+
+        String dateLine;
+        if (request.isPending()) {
+            dateLine = "Request date: " + request.getRequestDate();
         } else {
-            holder.tvRequestStatus.setTextColor(Color.parseColor("#D97706"));
+            dateLine = "Borrow: " + request.getBorrowDate() + " | Due: " + request.getDueDate();
+        }
+        holder.tvRequestDate.setText(dateLine);
+
+        holder.tvRequestStatus.setText(request.getStatus());
+        holder.tvRequestStatus.setTextColor(getStatusColor(request.getStatus()));
+
+        holder.tvApproveRequest.setVisibility(View.VISIBLE);
+        holder.tvRejectRequest.setVisibility(View.VISIBLE);
+
+        holder.tvApproveRequest.setEnabled(true);
+        holder.tvRejectRequest.setEnabled(true);
+
+        holder.tvApproveRequest.setAlpha(1f);
+        holder.tvRejectRequest.setAlpha(1f);
+
+        holder.tvApproveRequest.setOnClickListener(null);
+        holder.tvRejectRequest.setOnClickListener(null);
+
+        if (request.isPending()) {
+            holder.tvApproveRequest.setText("Approve");
+            holder.tvApproveRequest.setTextColor(Color.parseColor("#16A34A"));
+
+            holder.tvRejectRequest.setText("Reject");
+            holder.tvRejectRequest.setTextColor(Color.parseColor("#DC2626"));
+
+            holder.tvApproveRequest.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onApprove(request);
+                }
+            });
+
+            holder.tvRejectRequest.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onReject(request);
+                }
+            });
+
+        } else if (request.isBorrowing()) {
+            holder.tvApproveRequest.setVisibility(View.GONE);
+
+            holder.tvRejectRequest.setText("Return");
+            holder.tvRejectRequest.setTextColor(Color.parseColor("#2563EB"));
+
+            holder.tvRejectRequest.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onReturn(request);
+                }
+            });
+
+        } else {
+            holder.tvApproveRequest.setVisibility(View.GONE);
+
+            holder.tvRejectRequest.setText("Processed");
+            holder.tvRejectRequest.setEnabled(false);
+            holder.tvRejectRequest.setAlpha(0.45f);
+            holder.tvRejectRequest.setTextColor(Color.parseColor("#6B7280"));
+
+            holder.tvRejectRequest.setOnClickListener(v ->
+                    Toast.makeText(v.getContext(), "Request already processed", Toast.LENGTH_SHORT).show()
+            );
+        }
+    }
+
+    private int getStatusColor(String status) {
+        if ("Borrowing".equalsIgnoreCase(status) || "Returned".equalsIgnoreCase(status)) {
+            return Color.parseColor("#16A34A");
         }
 
-        boolean isPending = "Pending".equalsIgnoreCase(request.getStatus());
+        if ("Rejected".equalsIgnoreCase(status) || "Overdue".equalsIgnoreCase(status)) {
+            return Color.parseColor("#DC2626");
+        }
 
-        holder.tvApproveRequest.setEnabled(isPending);
-        holder.tvRejectRequest.setEnabled(isPending);
-
-        holder.tvApproveRequest.setAlpha(isPending ? 1f : 0.4f);
-        holder.tvRejectRequest.setAlpha(isPending ? 1f : 0.4f);
-
-        holder.tvApproveRequest.setOnClickListener(v -> {
-            if (!isPending) {
-                Toast.makeText(v.getContext(), "Request already processed", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (listener != null) {
-                listener.onApprove(request);
-            }
-        });
-
-        holder.tvRejectRequest.setOnClickListener(v -> {
-            if (!isPending) {
-                Toast.makeText(v.getContext(), "Request already processed", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (listener != null) {
-                listener.onReject(request);
-            }
-        });
+        return Color.parseColor("#D97706");
     }
 
     @Override

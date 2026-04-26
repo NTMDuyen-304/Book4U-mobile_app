@@ -1,224 +1,7 @@
-//package com.example.book4u.fragments.admin;
-//
-//import android.app.Activity;
-//import android.content.Intent;
-//import android.os.Bundle;
-//import android.text.Editable;
-//import android.text.TextWatcher;
-//import android.view.LayoutInflater;
-//import android.view.View;
-//import android.view.ViewGroup;
-//import android.widget.Button;
-//import android.widget.EditText;
-//
-//import androidx.activity.result.ActivityResultLauncher;
-//import androidx.activity.result.contract.ActivityResultContracts;
-//import androidx.annotation.NonNull;
-//import androidx.annotation.Nullable;
-//import androidx.appcompat.app.AlertDialog;
-//import androidx.fragment.app.Fragment;
-//import androidx.recyclerview.widget.LinearLayoutManager;
-//import androidx.recyclerview.widget.RecyclerView;
-//
-//import com.example.book4u.R;
-//import com.example.book4u.activities.AddEditBookActivity;
-//import com.example.book4u.adapters.AdminBookAdapter;
-//import com.example.book4u.models.Book;
-//import com.google.android.material.snackbar.Snackbar;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-//
-//public class AdminBooksFragment extends Fragment {
-//
-//    private EditText edtAdminSearchBooks;
-//    private RecyclerView recyclerAdminBooks;
-//    private Button btnAddBook;
-//    private AdminBookAdapter adminBookAdapter;
-//
-//    private final List<Book> fullBookList = new ArrayList<>();
-//    private final List<Book> filteredBookList = new ArrayList<>();
-//
-//    private final ActivityResultLauncher<Intent> addEditBookLauncher =
-//            registerForActivityResult(
-//                    new ActivityResultContracts.StartActivityForResult(),
-//                    result -> {
-//                        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-//                            Intent data = result.getData();
-//
-//                            String title = data.getStringExtra("title");
-//                            String author = data.getStringExtra("author");
-//                            String intro = data.getStringExtra("intro");
-//                            boolean available = data.getBooleanExtra("available", true);
-//                            int bookIndex = data.getIntExtra("bookIndex", -1);
-//                            boolean isEditMode = data.getBooleanExtra("isEditMode", false);
-//
-//                            if (isEditMode && bookIndex >= 0 && bookIndex < fullBookList.size()) {
-//                                Book bookToUpdate = fullBookList.get(bookIndex);
-//                                bookToUpdate.setTitle(title);
-//                                bookToUpdate.setAuthor(author);
-//                                bookToUpdate.setIntro(intro);
-//                                bookToUpdate.setAvailable(available);
-//
-//                                Snackbar.make(requireView(), "Book updated: " + title, Snackbar.LENGTH_SHORT).show();
-//                            } else {
-//                                Book newBook = new Book(title, author, intro, available);
-//                                fullBookList.add(0, newBook);
-//
-//                                Snackbar.make(requireView(), "Book added: " + title, Snackbar.LENGTH_SHORT).show();
-//                            }
-//
-//                            filterBooks(edtAdminSearchBooks.getText().toString());
-//                        }
-//                    }
-//            );
-//
-//    public AdminBooksFragment() {
-//    }
-//
-//    @Nullable
-//    @Override
-//    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-//                             @Nullable Bundle savedInstanceState) {
-//        View view = inflater.inflate(R.layout.fragment_admin_books, container, false);
-//
-//        edtAdminSearchBooks = view.findViewById(R.id.edtAdminSearchBooks);
-//        recyclerAdminBooks = view.findViewById(R.id.recyclerAdminBooks);
-//        btnAddBook = view.findViewById(R.id.btnAddBook);
-//
-//        recyclerAdminBooks.setLayoutManager(new LinearLayoutManager(requireContext()));
-//
-//        if (fullBookList.isEmpty()) {
-//            setupMockBooks();
-//        }
-//
-//        filteredBookList.clear();
-//        filteredBookList.addAll(fullBookList);
-//
-//        adminBookAdapter = new AdminBookAdapter(filteredBookList, new AdminBookAdapter.OnAdminBookActionListener() {
-//            @Override
-//            public void onEdit(Book book, int position) {
-//                int originalIndex = fullBookList.indexOf(book);
-//
-//                Intent intent = new Intent(requireContext(), AddEditBookActivity.class);
-//                intent.putExtra("title", book.getTitle());
-//                intent.putExtra("author", book.getAuthor());
-//                intent.putExtra("intro", book.getIntro());
-//                intent.putExtra("available", book.isAvailable());
-//                intent.putExtra("bookIndex", originalIndex);
-//                addEditBookLauncher.launch(intent);
-//            }
-//
-//            @Override
-//            public void onDelete(Book book, int position) {
-//                new AlertDialog.Builder(requireContext())
-//                        .setTitle("Delete book")
-//                        .setMessage("Do you want to delete the book \"" + book.getTitle() + "\"?")
-//                        .setNegativeButton("Cancel", null)
-//                        .setPositiveButton("Delete", (dialog, which) -> {
-//                            fullBookList.remove(book);
-//                            filterBooks(edtAdminSearchBooks.getText().toString());
-//
-//                            Snackbar.make(requireView(), "Deleted: " + book.getTitle(), Snackbar.LENGTH_SHORT).show();
-//                        })
-//                        .show();
-//            }
-//
-//            @Override
-//            public void onToggleStock(Book book, int position) {
-//                book.setAvailable(!book.isAvailable());
-//                filterBooks(edtAdminSearchBooks.getText().toString());
-//
-//                String msg = book.isAvailable() ? "Marked available" : "Marked unavailable";
-//                Snackbar.make(requireView(), msg + ": " + book.getTitle(), Snackbar.LENGTH_SHORT).show();
-//            }
-//        });
-//
-//        recyclerAdminBooks.setAdapter(adminBookAdapter);
-//
-//        edtAdminSearchBooks.addTextChangedListener(new TextWatcher() {
-//            @Override
-//            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-//            }
-//
-//            @Override
-//            public void onTextChanged(CharSequence s, int start, int before, int count) {
-//                filterBooks(s.toString());
-//            }
-//
-//            @Override
-//            public void afterTextChanged(Editable s) {
-//            }
-//        });
-//
-//        btnAddBook.setOnClickListener(v -> {
-//            Intent intent = new Intent(requireContext(), AddEditBookActivity.class);
-//            addEditBookLauncher.launch(intent);
-//        });
-//
-//        return view;
-//    }
-//
-//    private void setupMockBooks() {
-//        fullBookList.add(new Book(
-//                "Clean Code",
-//                "Robert C. Martin",
-//                "A practical guide to writing cleaner, more maintainable, and more readable code.",
-//                true
-//        ));
-//
-//        fullBookList.add(new Book(
-//                "Atomic Habits",
-//                "James Clear",
-//                "A book about building good habits, breaking bad ones, and improving yourself step by step.",
-//                false
-//        ));
-//
-//        fullBookList.add(new Book(
-//                "Android Programming Basics",
-//                "Google Developers",
-//                "An introduction to Android development concepts, UI design, and app building fundamentals.",
-//                true
-//        ));
-//
-//        fullBookList.add(new Book(
-//                "The Pragmatic Programmer",
-//                "Andrew Hunt",
-//                "A classic software engineering book that shares practical advice for becoming a better programmer.",
-//                true
-//        ));
-//
-//        fullBookList.add(new Book(
-//                "Design Patterns",
-//                "Erich Gamma",
-//                "An influential book introducing reusable object-oriented design patterns for software development.",
-//                false
-//        ));
-//    }
-//
-//    private void filterBooks(String keyword) {
-//        String query = keyword == null ? "" : keyword.trim().toLowerCase();
-//
-//        filteredBookList.clear();
-//
-//        for (Book book : fullBookList) {
-//            String title = book.getTitle() == null ? "" : book.getTitle().toLowerCase();
-//            String author = book.getAuthor() == null ? "" : book.getAuthor().toLowerCase();
-//
-//            if (title.contains(query) || author.contains(query)) {
-//                filteredBookList.add(book);
-//            }
-//        }
-//
-//        adminBookAdapter.setBookList(filteredBookList);
-//    }
-//}
 package com.example.book4u.fragments.admin;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -226,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -238,11 +22,18 @@ import com.example.book4u.R;
 import com.example.book4u.activities.AddEditBookActivity;
 import com.example.book4u.adapters.AdminBookAdapter;
 import com.example.book4u.models.Book;
+import com.example.book4u.models.BookRequest;
+import com.example.book4u.models.MessageResponse;
 import com.example.book4u.repository.BookRepository;
+import com.example.book4u.storage.SessionManager;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AdminBooksFragment extends Fragment {
 
@@ -252,14 +43,17 @@ public class AdminBooksFragment extends Fragment {
     private AdminBookAdapter adminBookAdapter;
 
     private final List<Book> bookList = new ArrayList<>();
+
     private BookRepository bookRepository;
+    private SessionManager sessionManager;
 
     public AdminBooksFragment() {
     }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_admin_books, container, false);
 
@@ -267,38 +61,25 @@ public class AdminBooksFragment extends Fragment {
         recyclerAdminBooks = view.findViewById(R.id.recyclerAdminBooks);
         btnAddBook = view.findViewById(R.id.btnAddBook);
 
-        bookRepository = new BookRepository(requireContext());
+        bookRepository = new BookRepository();
+        sessionManager = new SessionManager(requireContext());
 
         recyclerAdminBooks.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         adminBookAdapter = new AdminBookAdapter(bookList, new AdminBookAdapter.OnAdminBookActionListener() {
             @Override
             public void onEdit(Book book, int position) {
-                Intent intent = new Intent(requireContext(), AddEditBookActivity.class);
-                intent.putExtra("bookId", book.getId());
-                startActivity(intent);
+                openEditBookScreen(book);
             }
 
             @Override
             public void onDelete(Book book, int position) {
-                new AlertDialog.Builder(requireContext())
-                        .setTitle("Delete book")
-                        .setMessage("Do you want to delete the book \"" + book.getTitle() + "\"?")
-                        .setNegativeButton("Cancel", null)
-                        .setPositiveButton("Delete", (dialog, which) -> {
-                            bookRepository.deleteLocal(book);
-                            Snackbar.make(requireView(), "Deleted: " + book.getTitle(), Snackbar.LENGTH_SHORT).show();
-                            loadBooks();
-                        })
-                        .show();
+                confirmDeleteBook(book);
             }
 
             @Override
             public void onToggleStock(Book book, int position) {
-                bookRepository.toggleAvailabilityLocal(book);
-                String msg = book.isAvailable() ? "Marked unavailable" : "Marked available";
-                Snackbar.make(requireView(), msg + ": " + book.getTitle(), Snackbar.LENGTH_SHORT).show();
-                loadBooks();
+                toggleBookAvailability(book);
             }
         });
 
@@ -324,7 +105,8 @@ public class AdminBooksFragment extends Fragment {
             }
         });
 
-        bookRepository.seedBooksIfNeeded();
+        loadBooks();
+
         return view;
     }
 
@@ -335,20 +117,187 @@ public class AdminBooksFragment extends Fragment {
     }
 
     private void loadBooks() {
+        String token = sessionManager.getToken();
+
+        if (token == null || token.trim().isEmpty()) {
+            Toast.makeText(requireContext(), "Bạn chưa đăng nhập", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String keyword = edtAdminSearchBooks.getText().toString().trim();
 
-        if (keyword.isEmpty()) {
-            bookRepository.getAllLocalBooks(books ->
-                    new Handler(Looper.getMainLooper()).post(() -> updateList(books)));
-        } else {
-            bookRepository.searchLocalBooks(keyword, books ->
-                    new Handler(Looper.getMainLooper()).post(() -> updateList(books)));
+        bookRepository.getBooks(
+                token,
+                keyword.isEmpty() ? null : keyword,
+                null
+        ).enqueue(new Callback<List<Book>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<Book>> call,
+                                   @NonNull Response<List<Book>> response) {
+                if (!isAdded()) return;
+
+                if (response.isSuccessful() && response.body() != null) {
+                    updateList(response.body());
+                } else {
+                    Toast.makeText(
+                            requireContext(),
+                            "Không tải được danh sách sách. Code: " + response.code(),
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<Book>> call,
+                                  @NonNull Throwable t) {
+                if (!isAdded()) return;
+
+                Toast.makeText(
+                        requireContext(),
+                        "Lỗi kết nối BE: " + t.getMessage(),
+                        Toast.LENGTH_LONG
+                ).show();
+            }
+        });
+    }
+
+    private void openEditBookScreen(Book book) {
+        if (book.getId() == null || book.getId().trim().isEmpty()) {
+            Toast.makeText(requireContext(), "Sách chưa có ID từ backend", Toast.LENGTH_SHORT).show();
+            return;
         }
+
+        Intent intent = new Intent(requireContext(), AddEditBookActivity.class);
+        intent.putExtra("bookId", book.getId());
+        startActivity(intent);
+    }
+
+    private void confirmDeleteBook(Book book) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Xoá sách")
+                .setMessage("Bạn có muốn xoá sách \"" + book.getTitle() + "\" không?")
+                .setNegativeButton("Huỷ", null)
+                .setPositiveButton("Xoá", (dialog, which) -> deleteBook(book))
+                .show();
+    }
+
+    private void deleteBook(Book book) {
+        String token = sessionManager.getToken();
+
+        if (token == null || token.trim().isEmpty()) {
+            Toast.makeText(requireContext(), "Bạn chưa đăng nhập", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (book.getId() == null || book.getId().trim().isEmpty()) {
+            Toast.makeText(requireContext(), "Sách chưa có ID từ backend", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        bookRepository.deleteBook(token, book.getId())
+                .enqueue(new Callback<MessageResponse>() {
+                    @Override
+                    public void onResponse(@NonNull Call<MessageResponse> call,
+                                           @NonNull Response<MessageResponse> response) {
+                        if (!isAdded()) return;
+
+                        if (response.isSuccessful()) {
+                            Snackbar.make(requireView(), "Đã xoá: " + book.getTitle(), Snackbar.LENGTH_SHORT).show();
+                            loadBooks();
+                        } else {
+                            Toast.makeText(
+                                    requireContext(),
+                                    "Không xoá được sách. Code: " + response.code(),
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<MessageResponse> call,
+                                          @NonNull Throwable t) {
+                        if (!isAdded()) return;
+
+                        Toast.makeText(
+                                requireContext(),
+                                "Lỗi kết nối BE: " + t.getMessage(),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                });
+    }
+
+    private void toggleBookAvailability(Book book) {
+        String token = sessionManager.getToken();
+
+        if (token == null || token.trim().isEmpty()) {
+            Toast.makeText(requireContext(), "Bạn chưa đăng nhập", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (book.getId() == null || book.getId().trim().isEmpty()) {
+            Toast.makeText(requireContext(), "Sách chưa có ID từ backend", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int newAvailable = book.isAvailable() ? 0 : 1;
+        int newStock = Math.max(book.getStock(), newAvailable);
+
+        BookRequest request = new BookRequest(
+                book.getTitle(),
+                book.getAuthor(),
+                book.getCategory(),
+                book.getImageUrl(),
+                book.getDescription(),
+                book.getIntro(),
+                book.getFileUrl(),
+                book.getPages(),
+                newStock,
+                newAvailable,
+                newAvailable
+        );
+
+        bookRepository.updateBook(token, book.getId(), request)
+                .enqueue(new Callback<Book>() {
+                    @Override
+                    public void onResponse(@NonNull Call<Book> call,
+                                           @NonNull Response<Book> response) {
+                        if (!isAdded()) return;
+
+                        if (response.isSuccessful()) {
+                            String msg = newAvailable > 0 ? "Đã bật trạng thái còn sách" : "Đã đánh dấu hết sách";
+                            Snackbar.make(requireView(), msg + ": " + book.getTitle(), Snackbar.LENGTH_SHORT).show();
+                            loadBooks();
+                        } else {
+                            Toast.makeText(
+                                    requireContext(),
+                                    "Không cập nhật được sách. Code: " + response.code(),
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<Book> call,
+                                          @NonNull Throwable t) {
+                        if (!isAdded()) return;
+
+                        Toast.makeText(
+                                requireContext(),
+                                "Lỗi kết nối BE: " + t.getMessage(),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                });
     }
 
     private void updateList(List<Book> books) {
         bookList.clear();
-        bookList.addAll(books);
+
+        if (books != null) {
+            bookList.addAll(books);
+        }
+
         adminBookAdapter.setBookList(bookList);
     }
 }

@@ -3,56 +3,97 @@ package com.example.book4u.models;
 import com.google.gson.annotations.SerializedName;
 
 public class Borrow {
+
     @SerializedName(value = "id", alternate = {"_id"})
     private String id;
 
-    private BorrowUserLite user;
-    private BorrowBookLite book;
-    private String borrower;
+    private String bookId;
+    private String userId;
+
+    private String title;
+    private String bookTitle;
+
+    private String borrowerName;
+    private String borrowerEmail;
+
     private String borrowDate;
     private String dueDate;
     private String status;
+
+    private Integer daysRemaining;
     private int extendedDays;
-    private String createdAt;
-    private String updatedAt;
 
     public String getId() {
         return id;
     }
 
-    public BorrowUserLite getUser() {
-        return user;
+    public String getBookId() {
+        return bookId != null ? bookId : "";
     }
 
-    public BorrowBookLite getBook() {
-        return book;
+    public String getUserId() {
+        return userId != null ? userId : "";
     }
 
-    public String getBorrower() {
-        return borrower;
+    public String getTitle() {
+        if (title != null && !title.isEmpty()) {
+            return title;
+        }
+
+        if (bookTitle != null && !bookTitle.isEmpty()) {
+            return bookTitle;
+        }
+
+        return "Unknown Book";
+    }
+
+    public String getBookTitle() {
+        return getTitle();
+    }
+
+    public String getBorrowerName() {
+        return borrowerName != null ? borrowerName : "Unknown";
+    }
+
+    public String getBorrowerEmail() {
+        return borrowerEmail != null ? borrowerEmail : "";
     }
 
     public String getBorrowDate() {
-        return borrowDate;
+        return borrowDate != null && !borrowDate.isEmpty() ? borrowDate : "-";
     }
 
     public String getDueDate() {
-        return dueDate;
+        return dueDate != null && !dueDate.isEmpty() ? dueDate : "-";
     }
 
     public String getStatus() {
-        return status;
+        return status != null ? status : "Unknown";
+    }
+
+    public Integer getDaysRemaining() {
+        return daysRemaining;
     }
 
     public int getExtendedDays() {
         return extendedDays;
     }
 
-    public String getCreatedAt() {
-        return createdAt;
+    public boolean isPending() {
+        return "Pending Approval".equalsIgnoreCase(getStatus())
+                || "Pending".equalsIgnoreCase(getStatus());
     }
 
-    public String getUpdatedAt() {
-        return updatedAt;
+    public boolean isBorrowing() {
+        return "Borrowing".equalsIgnoreCase(getStatus())
+                || "Overdue".equalsIgnoreCase(getStatus());
+    }
+
+    public boolean isReturned() {
+        return "Returned".equalsIgnoreCase(getStatus());
+    }
+
+    public boolean isRejected() {
+        return "Rejected".equalsIgnoreCase(getStatus());
     }
 }

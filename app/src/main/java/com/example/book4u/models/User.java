@@ -24,19 +24,15 @@ public class User {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getName() {
-        return name;
+        return name != null ? name : "";
     }
 
     public String getEmail() {
-        return email;
+        return email != null ? email : "";
     }
 
     public String getRole() {
-        return role;
+        return role != null ? role : "student";
     }
 }

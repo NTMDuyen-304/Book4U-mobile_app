@@ -26,6 +26,7 @@ public class NotificationRepository {
     private List<NotificationItem> readAll(Context context) {
         String json = prefs(context).getString(KEY_LIST, "");
         if (json == null || json.isEmpty()) return new ArrayList<>();
+
         List<NotificationItem> list = gson.fromJson(json, listType);
         return list == null ? new ArrayList<>() : list;
     }
@@ -34,13 +35,23 @@ public class NotificationRepository {
         prefs(context).edit().putString(KEY_LIST, gson.toJson(list)).apply();
     }
 
-    public void addNotification(Context context, String userId, String title, String message, String createdAt) {
+    public void addNotification(Context context,
+                                String userId,
+                                String title,
+                                String message,
+                                String createdAt) {
         addNotification(context, userId, title, message, createdAt, "", "");
     }
 
-    public void addNotification(Context context, String userId, String title, String message,
-                                String createdAt, String targetType, String targetId) {
+    public void addNotification(Context context,
+                                String userId,
+                                String title,
+                                String message,
+                                String createdAt,
+                                String targetType,
+                                String targetId) {
         List<NotificationItem> list = readAll(context);
+
         list.add(0, new NotificationItem(
                 UUID.randomUUID().toString(),
                 userId,
@@ -51,47 +62,89 @@ public class NotificationRepository {
                 targetType,
                 targetId
         ));
+
+        saveAll(context, list);
+    }
+
+    public void addNotificationIfNotExists(Context context,
+                                           String userId,
+                                           String title,
+                                           String message,
+                                           String createdAt,
+                                           String targetType,
+                                           String targetId) {
+        List<NotificationItem> list = readAll(context);
+
+        for (NotificationItem item : list) {
+            boolean sameUser = userId.equals(item.getUserId());
+            boolean sameTarget = targetId != null && targetId.equals(item.getTargetId());
+            boolean sameTitle = title.equals(item.getTitle());
+
+            if (sameUser && sameTarget && sameTitle) {
+                return;
+            }
+        }
+
+        list.add(0, new NotificationItem(
+                UUID.randomUUID().toString(),
+                userId,
+                title,
+                message,
+                createdAt,
+                false,
+                targetType,
+                targetId
+        ));
+
         saveAll(context, list);
     }
 
     public List<NotificationItem> getNotificationsByUser(Context context, String userId) {
         List<NotificationItem> result = new ArrayList<>();
+
         for (NotificationItem item : readAll(context)) {
             if (userId.equals(item.getUserId())) {
                 result.add(item);
             }
         }
+
         return result;
     }
 
     public int getUnreadCount(Context context, String userId) {
         int count = 0;
+
         for (NotificationItem item : readAll(context)) {
             if (userId.equals(item.getUserId()) && !item.isRead()) {
                 count++;
             }
         }
+
         return count;
     }
 
     public void markAsRead(Context context, String notificationId) {
         List<NotificationItem> list = readAll(context);
+
         for (NotificationItem item : list) {
             if (notificationId.equals(item.getId())) {
                 item.setRead(true);
                 break;
             }
         }
+
         saveAll(context, list);
     }
 
     public void markAllAsRead(Context context, String userId) {
         List<NotificationItem> list = readAll(context);
+
         for (NotificationItem item : list) {
             if (userId.equals(item.getUserId())) {
                 item.setRead(true);
             }
         }
+
         saveAll(context, list);
     }
 }
