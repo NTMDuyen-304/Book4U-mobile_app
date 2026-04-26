@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.book4u.R;
 import com.example.book4u.models.AuthResponse;
+import com.example.book4u.models.User;
 import com.example.book4u.repository.AuthRepository;
 import com.example.book4u.storage.SessionManager;
 
@@ -24,8 +25,8 @@ public class LoginActivity extends AppCompatActivity {
     private EditText edtEmail, edtPassword;
     private Button btnLogin;
 
-    private AuthRepository authRepository;
     private SessionManager sessionManager;
+    private AuthRepository authRepository;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -36,8 +37,8 @@ public class LoginActivity extends AppCompatActivity {
         edtPassword = findViewById(R.id.edtPassword);
         btnLogin = findViewById(R.id.btnLogin);
 
-        authRepository = new AuthRepository();
         sessionManager = new SessionManager(this);
+        authRepository = new AuthRepository();
 
         btnLogin.setOnClickListener(v -> doLogin());
     }
@@ -51,37 +52,54 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
+        setLoading(true);
+
         authRepository.login(email, password).enqueue(new Callback<AuthResponse>() {
             @Override
             public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
-                if (!response.isSuccessful() || response.body() == null || response.body().getUser() == null) {
-                    Toast.makeText(LoginActivity.this, "Đăng nhập thất bại", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+                setLoading(false);
 
-                AuthResponse auth = response.body();
+                if (response.isSuccessful() && response.body() != null) {
+                    AuthResponse authResponse = response.body();
+                    User user = authResponse.getUser();
 
-                sessionManager.saveSession(
-                        auth.getToken(),
-                        auth.getUser().getId(),
-                        auth.getUser().getName(),
-                        auth.getUser().getEmail(),
-                        auth.getUser().getRole()
-                );
+                    if (authResponse.getToken() == null || user == null) {
+                        Toast.makeText(LoginActivity.this, "Dữ liệu đăng nhập không hợp lệ", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
 
-                if ("admin".equalsIgnoreCase(auth.getUser().getRole())) {
-                    startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
+                    sessionManager.saveSession(
+                            authResponse.getToken(),
+                            user.getId(),
+                            user.getName(),
+                            user.getEmail(),
+                            user.getRole()
+                    );
+
+                    Toast.makeText(LoginActivity.this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+
+                    if ("admin".equalsIgnoreCase(user.getRole())) {
+                        startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
+                    } else {
+                        startActivity(new Intent(LoginActivity.this, StudentMainActivity.class));
+                    }
+
+                    finish();
                 } else {
-                    startActivity(new Intent(LoginActivity.this, StudentMainActivity.class));
+                    Toast.makeText(LoginActivity.this, "Sai tài khoản hoặc mật khẩu", Toast.LENGTH_SHORT).show();
                 }
-
-                finish();
             }
 
             @Override
             public void onFailure(Call<AuthResponse> call, Throwable t) {
-                Toast.makeText(LoginActivity.this, "Lỗi mạng: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                setLoading(false);
+                Toast.makeText(LoginActivity.this, "Lỗi kết nối BE: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    private void setLoading(boolean isLoading) {
+        btnLogin.setEnabled(!isLoading);
+        btnLogin.setText(isLoading ? "Đang đăng nhập..." : "Đăng nhập");
     }
 }

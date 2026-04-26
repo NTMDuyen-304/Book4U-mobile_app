@@ -1,3 +1,14 @@
 <resources>
-    <string name="app_name">book4u</string>
+    <string name="app_name">Book4U</string>
+    <string name="profile">Profile</string>
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="role">Role</string>
+    <string name="logout">Logout</string>
+    <string name="notifications">Notifications</string>
+    <string name="default_user_name">Student User</string>
+    <string name="default_user_email">student@example.com</string>
+    <string name="default_user_role">student</string>
+    <string name="no_notifications_yet">No notifications yet</string>
+    <string name="notification_item_format">• %1$s: %2$s (%3$s)</string>
 </resources>

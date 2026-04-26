@@ -1,12 +1,13 @@
 package com.example.book4u.fragments.shared;
 
-import com.example.book4u.storage.SessionManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +15,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.book4u.R;
 import com.example.book4u.activities.LoginActivity;
+import com.example.book4u.storage.SessionManager;
 
 public class ProfileFragment extends Fragment {
 
@@ -26,9 +28,22 @@ public class ProfileFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
+        TextView tvUserName = view.findViewById(R.id.tvUserName);
+        TextView tvUserEmail = view.findViewById(R.id.tvUserEmail);
+        TextView tvUserRole = view.findViewById(R.id.tvUserRole);
         Button btnLogout = view.findViewById(R.id.btnLogout);
+
+        SessionManager sessionManager = new SessionManager(requireContext());
+
+        String name = sessionManager.getName();
+        String email = sessionManager.getEmail();
+        String role = sessionManager.getRole();
+
+        tvUserName.setText(TextUtils.isEmpty(name) ? "Unknown User" : name);
+        tvUserEmail.setText(TextUtils.isEmpty(email) ? "No email" : email);
+        tvUserRole.setText(TextUtils.isEmpty(role) ? "unknown" : role);
+
         btnLogout.setOnClickListener(v -> {
-            SessionManager sessionManager = new SessionManager(requireContext());
             sessionManager.clearSession();
 
             Intent intent = new Intent(requireContext(), LoginActivity.class);

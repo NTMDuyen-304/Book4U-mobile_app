@@ -2,14 +2,31 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/purple_lighter"
     android:orientation="vertical"
     android:padding="16dp">
 
     <TextView
+        android:id="@+id/tvMyBorrowTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="My Borrow"
-        android:textSize="22sp"
+        android:textColor="@color/text_main"
+        android:textSize="24sp"
         android:textStyle="bold" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Books you are currently borrowing"
+        android:textColor="@color/text_muted"
+        android:textSize="14sp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerMyBorrow"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_weight="1" />
 </LinearLayout>

@@ -2,14 +2,41 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/purple_lighter"
     android:orientation="vertical"
     android:padding="16dp">
 
     <TextView
+        android:id="@+id/tvBooksTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Books"
-        android:textSize="22sp"
+        android:textColor="@color/text_main"
+        android:textSize="24sp"
         android:textStyle="bold" />
 
+    <EditText
+        android:id="@+id/edtSearchBooks"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="@color/purple_primary"
+        android:hint="Search books..."
+        android:padding="12dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Available Books"
+        android:textColor="@color/text_main"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerBooks"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_weight="1" />
 </LinearLayout>
