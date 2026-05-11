@@ -35,4 +35,5 @@ public class User {
     public String getRole() {
         return role != null ? role : "student";
     }
+
 }
